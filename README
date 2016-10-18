@@ -1,1 +1,17 @@
-This is the first project
+All the implemented functions are in keccak.c
+In keccak.h you can find declarations and macros. 
+Unfortunately I was not able to write all the code using linux kernel syle but I have avoided to write long commands. 
+You can set the variable VERBOSE to 1 if you want to take a look bto the output of program. 
+
+I have inserted some implementative details for the most important functions 
+
+######################################
+Enhancements from the previous version
+######################################
+
+1. Passing from matrix to array implementation
+2. Splitted rho and pi steps.
+3. Enhanced code robustness.
+4. Deleted reverse byte mapping (swap byte twice was unuseful)
+5. Optimized code
+6. Reduced LOC

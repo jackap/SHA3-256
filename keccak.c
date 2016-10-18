@@ -114,6 +114,18 @@ void r_ound(uint64_t * A, unsigned int rnd)
 	bzero(B, sizeof(B));
 
 ///theta step
+	/*
+
+  C[x] = A[x,0] xor A[x,1] xor A[x,2] xor A[x,3] xor A[x,4]
+  forall x in 0…4
+
+  D[x] = C[x-1] xor rot(C[x+1],1),                              
+  forall x in 0…4
+
+  A[x,y] = A[x,y] xor D[x],                           
+  forall (x,y) in (0…4,0…4)
+
+	*/
 	trace(printf("After theta:\n"));
 
 	for (x = 0; x < MOD; x++) {
@@ -133,6 +145,10 @@ void r_ound(uint64_t * A, unsigned int rnd)
 
 
 ///rho step
+	/*
+ 		B[y,x] = rot(A[x,y], r[x,y])
+ 		  forall (x,y) in (0…4,0…4)
+	*/
 	trace(printf("After rho:\n"));
 
 	for (x = 0; x < 5; x++) 
@@ -144,6 +160,11 @@ void r_ound(uint64_t * A, unsigned int rnd)
 
 
 ///pi step
+
+	/*
+ 		B[y,x] =  B[y,2*x+3*y] forall (x,y) in (0…4,0…4)
+ 		
+	*/
 	trace(printf("After pi:\n"));
 
 	for (x = 0; x < 5; ++x)
@@ -156,6 +177,13 @@ void r_ound(uint64_t * A, unsigned int rnd)
 	trace(printStateArrayInverted(B));
 
 ///chi step
+
+	/*
+	
+	 A[x,y] = B[x,y] xor ((not B[x+1,y]) and B[x+2,y])
+	 forall (x,y) in (0…4,0…4)
+
+	*/
 	trace(printf("After chi:%c\n", 0));
 
 	for (x = 0; x < 5; ++x)
@@ -167,6 +195,11 @@ void r_ound(uint64_t * A, unsigned int rnd)
 	trace(printStateArrayInverted(A));
 
 ///iota step
+	/*
+	
+	 A[0,0] = A[0,0] xor RC
+
+	*/
 	trace(printf("After iota:%c\n", 0));
 	A[indexOf(0, 0)] = A[indexOf(0, 0)] ^ RC[rnd];
 
