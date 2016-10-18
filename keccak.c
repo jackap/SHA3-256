@@ -45,6 +45,7 @@ unsigned long RhoOffset[5][5] = {
 	{27, 20, 39, 8, 14}
 };
 
+/// This function is hidden because it is used only within this file
 void r_ound(uint64_t * A, unsigned int rnd);
 
 /*****************************************************************************
@@ -59,7 +60,7 @@ void r_ound(uint64_t * A, unsigned int rnd);
 void printStateArray(uint64_t * A)
 {
 
-	int i;;
+	int i;
 	for (i = 0; i < 25; i++) {
 		if (i % 2 == 0)
 			printf("\n");
@@ -83,6 +84,7 @@ void printStateArrayInverted(uint64_t * A)
 	}
 	printf("\n");
 }
+
 /*****************************************************************************
  * @brief: The sequence of step mappings that is iterated in the calculation of
  * a KECCAK-p permutation (See par. 3.2).
@@ -112,7 +114,7 @@ void r_ound(uint64_t * A, unsigned int rnd)
 	bzero(B, sizeof(B));
 
 ///theta step
-	    trace(printf("After theta:\n"));
+	trace(printf("After theta:\n"));
 
 	for (x = 0; x < MOD; x++) {
 		C[x] = A[indexOf(0, x)] ^ A[indexOf(1, x)] ^ A[indexOf(2, x)]
@@ -133,13 +135,10 @@ void r_ound(uint64_t * A, unsigned int rnd)
 ///rho step
 	trace(printf("After rho:\n"));
 
-	for (x = 0; x < 5; x++) {
-		for (y = 0; y < 5; y++) {
-
-			B[indexOf(y, x)] = ROL64(A[indexOf(y, x)], RhoOffset[x][y]);
-			
-		}
-	}
+	for (x = 0; x < 5; x++) 
+		for (y = 0; y < 5; y++) 
+			B[indexOf(y, x)] =
+			ROL64(A[indexOf(y, x)], RhoOffset[x][y]);
 
 	trace(printStateArrayInverted(B));
 
@@ -150,31 +149,31 @@ void r_ound(uint64_t * A, unsigned int rnd)
 	for (x = 0; x < 5; ++x)
 		for (y = 0; y < 5; ++y) {
 			B[indexOf(2 * x + 3 * y, y)] =
-			    ROL64(A[indexOf(y, x)], RhoOffset[x][y]);
+			ROL64(A[indexOf(y, x)], RhoOffset[x][y]);
 
 		}
 
 	trace(printStateArrayInverted(B));
 
 ///chi step
-	    trace(printf("After chi:%c\n", 0));
+	trace(printf("After chi:%c\n", 0));
 
 	for (x = 0; x < 5; ++x)
 		for (y = 0; y < 5; ++y)
-			A[indexOf(y, x)] =
-			    B[indexOf(y, x)] ^
-			    ((~B[indexOf(y, x + 1)]) &
-			     B[indexOf(y, x + 2)]);
+			A[indexOf(y, x)] = B[indexOf(y, x)] ^
+			((~B[indexOf(y, x + 1)]) &
+			 B[indexOf(y, x + 2)]);
 
 	trace(printStateArrayInverted(A));
 
 ///iota step
-	    trace(printf("After iota:%c\n", 0));
+	trace(printf("After iota:%c\n", 0));
 	A[indexOf(0, 0)] = A[indexOf(0, 0)] ^ RC[rnd];
 
 	trace(printStateArrayInverted(A));
 
 }
+
 /*****************************************************************************
  * @brief: This function implements the sponge algorithm (see par 4.0)
  * @author: Jacopo Bufalino - jacopobufalino@gmail.com
@@ -182,26 +181,32 @@ void r_ound(uint64_t * A, unsigned int rnd)
  * @return: sha3 encrypted array
  * @arg: output message and size,input message (already with 01 as padding),
  * input len
- *
+ * @note: In this function is not necessary to create the  arrays
+ * nextState and cur_state (you can just create pointers) but I have
+ * added them because in my opinion is a good compromise between optimization
+ * and code readability.
  *****************************************************************************/
-void sponge(unsigned char *out_msg, unsigned int out_size, unsigned char *in_msg,
-	     unsigned int in_size)
+void
+sponge(unsigned char *out_msg, unsigned int out_size, unsigned char *in_msg,
+ unsigned int in_size)
 {
 
 	unsigned long pad_len, final_len;
 	unsigned char *msg_final = NULL;
-	unsigned int i, nchunks = in_size / RATIO + (in_size % RATIO == 0 ? 0 : 1);
+	unsigned int i, nchunks = in_size / RATIO +
+	(in_size % RATIO == 0 ? 0 : 1);
 
 ///do I need additional padding? 
 	if (in_size % RATIO) { ///yes
-		unsigned char *msg_pad = NULL;
-		if ((pad_len =
+	unsigned char *msg_pad = NULL;
+		if ((pad_len = ///create padding
 		pad10x1(&msg_pad, RATIO, (unsigned long)in_size % 1088)) <= 0)
 			exit(EXIT_FAILURE);
-		if ((final_len =
-		     concatenate(&msg_final, in_msg, in_size, msg_pad, pad_len)) % RATIO)
+		if ((final_len = ///concatenate the old string with padding
+		concatenate(&msg_final, in_msg,
+		in_size, msg_pad, pad_len)) % RATIO)
 			exit(EXIT_FAILURE);
-		free(msg_pad);
+		free(msg_pad);///free memory
 	} else
 		msg_final = in_msg;
 
@@ -215,7 +220,7 @@ void sponge(unsigned char *out_msg, unsigned int out_size, unsigned char *in_msg
 	memcpy(cur_state, &msg_final[cur_pos], 136 * sizeof(char));
 	Round(cur_state, 24); /* call keccak the first time */
 	
-	while (--nchunks) { //enter here if in_size > 1088
+	while (--nchunks) { //enter here until there is data to absorb
 		cur_pos += 136;
 		//load the next chunk
 		memcpy(nextState, &msg_final[cur_pos], 136 * sizeof(char)); 
@@ -227,7 +232,7 @@ void sponge(unsigned char *out_msg, unsigned int out_size, unsigned char *in_msg
 
 	}
 
-	/* fill output array with sha3 */
+	/* fill output array with sha3 and free memory */
 	memcpy(out_msg, cur_state, (unsigned int)out_size / 8);
 	free(cur_state);
 	free(nextState);
