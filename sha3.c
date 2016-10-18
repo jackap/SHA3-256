@@ -23,7 +23,6 @@ void sha3(unsigned char *d, unsigned int s, const unsigned char *m,
 		return;
 unsigned char *msg01 = NULL;
 uint64_t len01 = concatenate_01(&msg01,m,l);
-printf("Calling sponge\n");
 sponge(d,s,msg01,len01);
 if (msg01 !=NULL) free(msg01);
 
